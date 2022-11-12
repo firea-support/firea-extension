@@ -52,6 +52,8 @@ resources:
     properties:
       location: ${param:LOCATION}
       runtime: nodejs14
+      sourceDirectory: functions
+      timeout: 120s
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/${param:COLLECTION_PATH}/{messageId}
