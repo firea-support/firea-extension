@@ -17,4 +17,5 @@
 export default {
   location: process.env.LOCATION,
   projectApiKey: process.env.PROJECT_API_KEY,
+  collectionPath: process.env.COLLECTION_PATH,
 };
