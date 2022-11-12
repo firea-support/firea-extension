@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@types/node": "^18.11.9"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.2.1",
+    "firebase-functions": "^4.0.2"
+  }
+}
