@@ -27,7 +27,7 @@ import * as validators from "./validators";
 admin.initializeApp();
 logs.init(config);
 
-export const docChanged = functions.handler.firestore.document.onWrite(
+export const fsStreamCollection = functions.handler.firestore.document.onWrite(
   async (change): Promise<void> => {
     logs.start(config);
 
