@@ -1,4 +1,4 @@
-# Copyright 2019 Google LLC
+# Copyright 2022 Mark.One GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,13 +36,9 @@ contributors:
 
 billingRequired: true
 
-apis:
-  - apiName: translate.googleapis.com
-    reason: To use Google Translate to translate strings into your specified target languages.
-
 roles:
   - role: datastore.user
-    reason: Allows the extension to write translated strings to Cloud Firestore.
+    reason: Allows the extension to work properly
 
 resources:
   - name: fsStreamCollection
