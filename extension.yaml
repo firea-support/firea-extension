@@ -122,10 +122,18 @@ params:
     default: translations
     required: true
 
+  - param: F_PROJECT_ID
+    label: Firea Project ID
+    description: >
+      Go to your Firea.io console and copy your project id
+    example: some_project_id
+    default: some_project_id
+    required: true
+
   - param: PROJECT_API_KEY
     label: Firea Project API Key
     description: >
-      Find your key here:
+      Go to your Firea.io console and copy your api key
     example: some_api_key
     default: some_api_key
     required: true
