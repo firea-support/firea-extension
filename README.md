@@ -6,12 +6,8 @@
 ---
 
 ## 🧩 Install this extension
+https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.0.1
 
-### Console
-#TODO
-
-### Firebase CLI
-#TODO
 
 ---
 
