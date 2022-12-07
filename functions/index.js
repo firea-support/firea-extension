@@ -11,7 +11,7 @@ exports.fsStreamCollection = functions.handler.firestore.document.onWrite((chang
     functions.logger.log('Sync Collection');
     //check if doc was deleted
     const isDocDeleted = !change.after.exists;
-    const docRef = change.after.ref._path;
+    const docRef = change.after.ref.collectionPath();
 
       //header for sending to firea backend
       let requestOptions = {
@@ -26,11 +26,8 @@ exports.fsStreamCollection = functions.handler.firestore.document.onWrite((chang
       
 
       //payload sent to the firea backend 
-      const data = {};
-      if (!isDocDeleted) {
-        const data = change.after.data();
-        data['_id'] = change.after.id;
-      }
+      const data = change.after.data();
+      data['_id'] = change.after.id;
 
       
       //Enpoint of the firea backend data server 
