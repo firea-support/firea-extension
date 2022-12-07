@@ -9,6 +9,9 @@ const extensionConfig = require("./config");
 
 exports.fsStreamCollection = functions.handler.firestore.document.onWrite((change, context) => {
     functions.logger.log('Sync Collection');
+    //check if doc was deleted
+    const isDocDeleted = !change.after.exists;
+    const docRef = change.after.ref._path;
 
       //header for sending to firea backend
       let requestOptions = {
@@ -16,17 +19,23 @@ exports.fsStreamCollection = functions.handler.firestore.document.onWrite((chang
           "X-Firea-Api-Key": extensionConfig.default.projectApiKey,
           "X-Firea-Project-Id":extensionConfig.default.fireaProjectId,
           "X-Firea-Collection-Id":extensionConfig.default.collectionPath,
+          "X-Firea-DeleteDoc":isDocDeleted,
+          "X-Firea-DocPath":docRef,
         }
       }
       
 
-      //payload sent to the firea backend
-      const data = change.after.data();
-      data['_id'] = change.after.id;
+      //payload sent to the firea backend 
+      const data = {};
+      if (!isDocDeleted) {
+        const data = change.after.data();
+        data['_id'] = change.after.id;
+      }
+
       
       //Enpoint of the firea backend data server 
       //todo route data based on location to the nearest firea server
-      const dataEndpoint = "https://us-central1.gcp.data.mongodb-api.com/app/us_central-bbrdi/endpoint/update";
+      const dataEndpoint = "https://update-a6smmjqo7a-uc.a.run.app/update";
 
       axios.post(dataEndpoint, data, requestOptions).then(res => {
           functions.logger.log('STATUS',res.status);
