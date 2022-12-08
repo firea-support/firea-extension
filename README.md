@@ -1,12 +1,12 @@
 # Firea.io - Supercharge your Firestore Database
 **Author**: Firea.io (https://www.firea.io/)
 
-**Description**: Use powerful MQL Queries to use allow for aggregation, groupby and complex query to your database
+**Description**: Use powerful MQL Queries to use allow for aggregation, groupby and complex querys to your database
 
 ---
 
 ## 🧩 Install this extension
-https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.0.1
+https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.1.0
 
 
 ---

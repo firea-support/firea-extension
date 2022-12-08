@@ -8,13 +8,12 @@ const extensionConfig = require("./config");
 
 
 exports.fsStreamCollection = functions.handler.firestore.document.onWrite((change, context) => {
-    functions.logger.log('Sync Collection');
-    
-    //check if doc was deleted
-    const isDocDeleted = !change.after.exists;
-    const docRef = change.after.ref.path;
 
-      //header for sending to firea backend
+      //check if document was deleted
+      const isDocDeleted = !change.after.exists;
+      const docRef = change.after.ref.path;
+
+      //sert header for sending to the firea backend
       let requestOptions = {
         headers: {
           "X-Firea-Api-Key": extensionConfig.default.projectApiKey,
@@ -23,9 +22,8 @@ exports.fsStreamCollection = functions.handler.firestore.document.onWrite((chang
           "X-Firea-DocPath":docRef,
         }
       }
-      
 
-      //payload sent to the firea backend 
+      //payload sent to the firea backend database
       var data = {}
       if (isDocDeleted){
         data = {'__DELETE_DOCUMENT__':change.after.id}
@@ -34,14 +32,13 @@ exports.fsStreamCollection = functions.handler.firestore.document.onWrite((chang
         data['_id'] = change.after.id;
       }
 
-      //Enpoint of the firea backend data server 
-      //todo route data based on location to the nearest firea server
+      //post to the endpoint of the firea data server for indexing
       const dataEndpoint = "https://update-a6smmjqo7a-uc.a.run.app/update";
 
       axios.post(dataEndpoint, data, requestOptions).then(res => {
-          functions.logger.log('STATUS',res.status);
+          functions.logger.log('Firea Sync Done',res.status);
         })
         .catch(err => {
-          functions.logger.log('Error',err);
+          functions.logger.log('Firea Sync Error',err);
         })
     });
