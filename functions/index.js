@@ -59,6 +59,8 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
     const text = data.text;
     const collectionId = data.collectionId;
     const aggPipeline = data.aggPipeline;
+    functions.logger.log('collectionId',collectionId);
+    functions.logger.log('aggPipeline',aggPipeline);
 
     //set header for sending to the firea backend
     let requestOptions = {
@@ -75,7 +77,7 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
     //execute the aggregation on the fires server
     const dataEndpoint = "https://aggregation-a6smmjqo7a-uc.a.run.app";
     axios.post(dataEndpoint, aggPipeline, requestOptions).then(res => {
-        return res;
+        return res.data;
       })
       .catch(err => {
         functions.logger.log('Firea Sync Error',err);
