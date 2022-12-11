@@ -49,10 +49,21 @@ resources:
       location: ${param:LOCATION}
       runtime: nodejs14
       sourceDirectory: functions
-      timeout: 30s
+      timeout: 10s
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/${param:COLLECTION_PATH}/{docId}
+
+  - name: fireaAggregate
+    type: firebaseextensions.v1beta.function
+    description:
+      Authenticated Cloud function that can be called via your Firebase SDK
+    properties:
+      location: ${param:LOCATION}
+      runtime: nodejs14
+      sourceDirectory: functions
+      timeout: 15s
+      httpsTrigger: {}
 
 params:
   - param: LOCATION
