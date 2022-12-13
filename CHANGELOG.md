@@ -9,3 +9,13 @@ Beta Release:
 - Support for Collection Group Queries
 - Better Hanlding for Document Deletions
 - Datetime Bugfixes
+
+## Version 0.2.0
+
+- Secure Aggregation from your Firebase SDK
+- Security Filters
+- Faster Backfilling of your Data
+- Performance Improvements & Bugfixes
+- Custom Indexing
+- View Aggregation Logs in your Firea.io Console
+

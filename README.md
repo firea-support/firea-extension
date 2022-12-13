@@ -6,7 +6,7 @@
 ---
 
 ## 🧩 Install this extension
-https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.1.0
+https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.2.0
 
 
 ---
@@ -40,7 +40,7 @@ MQL Aggregations will not count as writes as they are not performed on the fires
 
 **Cloud Functions:**
 
-- **fsStreamCollection:** Listens for updates to your specified Cloud Firestore collection, and updates the firea.io backend index.
+- **fireaSyncDocument:** Listens for updates to your specified Cloud Firestore collection, and updates the firea.io backend index.
 
 **Access Required**:
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firea-sync
-version: 0.1.0 
+version: 0.2.0 
 specVersion: v1beta
 
 displayName: Firea.io
@@ -22,8 +22,8 @@ description:
 
 license: Apache-2.0
 
-sourceUrl: https://github.com/firebase/extensions/tree/master/firestore-translate-text
-releaseNotesUrl: https://github.com/firebase/extensions/blob/master/firestore-translate-text/CHANGELOG.md
+sourceUrl: https://github.com/firea-support/firea-extension
+releaseNotesUrl: https://github.com/firea-support/firea-extension/blob/main/CHANGELOG.md
 
 author:
   authorName: Firebase
@@ -41,7 +41,7 @@ roles:
     reason: Allows the extension to work properly
 
 resources:
-  - name: fsStreamCollection
+  - name: fireaSyncDocument
     type: firebaseextensions.v1beta.function
     description:
       Listens for writes of new strings to your specified Cloud Firestore collection and streams them to firea.io backend
@@ -64,6 +64,22 @@ resources:
       sourceDirectory: functions
       timeout: 15s
       httpsTrigger: {}
+
+  - name: fireaBackfillData
+    type: firebaseextensions.v1beta.function
+    description: >-
+      If enabled, the extension will backfill your firestore data to the Firea.io Backend
+    properties:
+      location: ${LOCATION}
+      taskQueueTrigger: {}
+
+lifecycleEvents:
+  onInstall:
+    function: fireaBackfillData
+    processingMessage: Check if existing documents must be backfilled
+  onUpdate:
+    function: fireaBackfillData
+    processingMessage: Check if existing documents must be backfilled
 
 params:
   - param: LOCATION
@@ -148,3 +164,18 @@ params:
     example: some_api_key
     default: some_api_key
     required: true
+
+  - param: DO_BACKFILL
+    label: Do you want to backfill all your existing data?
+    description: >-
+      This requires you to have Blaze plan enabled on your Firea.io Account
+      You can always manually trigger a backfill later from your Firea.io console
+    type: select
+    default: true
+    required: true
+    immutable: true
+    options:
+      - label: Yes
+        value: true
+      - label: No
+        value: false
