@@ -57,7 +57,7 @@ resources:
   - name: fireaAggregate
     type: firebaseextensions.v1beta.function
     description:
-      Authenticated Cloud function that can be called via your Firebase SDK
+      Authenticated cloud function that can be called via your Firebase SDK
     properties:
       location: ${param:LOCATION}
       runtime: nodejs14

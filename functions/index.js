@@ -1,15 +1,15 @@
 /*
 handles firestore document updates and sends them the the firea backend
 */
+const extensionConfig = require('./config');
 const functions = require('firebase-functions');
 const { initializeApp,getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const { getFunctions } = require("firebase-admin/functions");
 const { getExtensions } = require("firebase-admin/extensions");
-const extensionConfig = require('./config');
 const firea = require('./firea');
 
-exports.fireaSyncDocument = functions.firestore.document(extensionConfig.default.collectionPath).onWrite((change, context) => {
+exports.fireaSyncDocument = functions.handler.firestore.document.onWrite((change, context) => {
     //check if document was deleted
     const docId = change.after.id;
     const docData = change.after.data();
@@ -17,9 +17,15 @@ exports.fireaSyncDocument = functions.firestore.document(extensionConfig.default
     const isDocDeleted = !change.after.exists;
 
     //post to the endpoint of the firea data server for indexing
-    firea.syncDoc(docId,docData,docPath,deleteDoc=isDocDeleted)
-});
+    try{
+      firea.syncDoc(docId,docData,docPath,deleteDoc=isDocDeleted)
+      functions.logger.log('doc sync success',docId);
 
+    } catch (error) {
+      //todo throw error to retry syncing
+      functions.logger.log('Fatal Syncing Document',error);
+    }
+});
 
 exports.fireaAggregate = functions.https.onCall((data, context) => {
     // Checking that the user is authenticated.
@@ -33,7 +39,7 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
     // Get information to relay to firea backend
     const userData = context.auth.token || null;
     const collectionId = data.collectionId;
-    const aggPipeline = data.aggPipeline;
+    const aggPipeline = data.query;
 
     //execute aggreation
     return firea.getAggregation(collectionId,aggPipeline,userData);
@@ -86,7 +92,7 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
       }
     })
   );
-
+  
   //DEBUG ONLY - print each sync result
   processed.forEach((result) => {
     functions.logger.log('Status',result.status);

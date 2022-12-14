@@ -8,19 +8,20 @@ const extensionConfig = require('./config');
 const axios = require('axios');
 const functions = require('firebase-functions');
 
-
 //Helper to create authentication header for the firea backend
-function _getBaseHeader(docPath=null,userData=null,deleteDoc=false){
+function _getBaseHeader(docPath=null,userData=null,deleteDoc=null,collectionId=null){
     //construct base header 
     var baseHeader = {
+        "Content-Type":"application/json",
         "X-Firea-Api-Key": extensionConfig.default.projectApiKey,
         "X-Firea-Project-Id":extensionConfig.default.fireaProjectId,
         "X-Firea-Collection-Id":extensionConfig.default.collectionPath,
     }
     //add optional header parameters for different enpoints
     if (docPath != null) {baseHeader['X-Firea-DocPath']=docPath}
-    if (userData != null) {baseHeader['X-User-Map']=userData}
-    if (deleteDoc != null) {baseHeader['X-Delete-Doc']='true'}
+    if (userData != null) {baseHeader['X-Firea-User-Map']=userData}
+    if (deleteDoc != null) {baseHeader['X-Firea-Delete-Doc']='true'}
+    if (collectionId != null) {baseHeader['X-Firea-Collection-Id']=collectionId}
     return baseHeader;
 }
 
@@ -92,13 +93,13 @@ exports.syncDoc = function fireaSyncDoc(docId,docData,docPath,deleteDoc=false) {
 //takes in a collection name and an aggregation pipeline and exectutes the aggreation
 exports.getAggregation = function fireaGetAggregation(collectionId,aggPipeline,userData) {
     //request parameters
-    const requestOptions = {headers:_getBaseHeader(userData=userData),timeout:3000};
+    const requestOptions = {headers:_getBaseHeader(userData=userData,collectionId=collectionId),timeout:3000};
     const dataEndpoint = _getAggEndpoint();
-    const reqData = {'collectionId':collectionId,'aggPipeline':aggPipeline};
 
     //execute the aggregation on the fires server
-    return axios.post(dataEndpoint, reqData, requestOptions).
+    return axios.post(dataEndpoint, aggPipeline, requestOptions).
     then(res => {
+        functions.logger.log('Aggregation Success');
         return res.data;
     })
     .catch(function (error) {
