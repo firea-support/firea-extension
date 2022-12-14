@@ -80,6 +80,9 @@ lifecycleEvents:
   onUpdate:
     function: fireaBackfillData
     processingMessage: Check if existing documents must be backfilled
+  onConfigure:
+    function: fireaBackfillData
+    processingMessage: Check if existing documents must be backfilled
 
 params:
   - param: LOCATION

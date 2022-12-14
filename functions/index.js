@@ -4,54 +4,21 @@ handles firestore document updates and sends them the the firea backend
 const functions = require('firebase-functions');
 const { initializeApp,getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
-const { FieldPath } = require('firebase-admin/firestore')
 const { getFunctions } = require("firebase-admin/functions");
 const { getExtensions } = require("firebase-admin/extensions");
-const axios = require('axios');
+const extensionConfig = require('./config');
+const firea = require('./firea');
 
+exports.fireaSyncDocument = functions.firestore.document(extensionConfig.default.collectionPath).onWrite((change, context) => {
+    //check if document was deleted
+    const docId = change.after.id;
+    const docData = change.after.data();
+    const docPath = change.after.ref.path;
+    const isDocDeleted = !change.after.exists;
 
-const extensionConfig = {
-    location: process.env.LOCATION || "us-central1",
-    collectionPath: process.env.COLLECTION_PATH || "collectionName",
-    projectApiKey: process.env.PROJECT_API_KEY || "some_api_key",
-    fireaProjectId: process.env.F_PROJECT_ID || "some_api_key",
-};
-
-exports.fireaSyncDocument = functions.firestore.document(extensionConfig.collectionPath).onWrite((change, context) => {
-
-      //check if document was deleted
-      const isDocDeleted = !change.after.exists;
-      const docRef = change.after.ref.path;
-
-      //sert header for sending to the firea backend
-      let requestOptions = {
-        headers: {
-          "X-Firea-Api-Key": extensionConfig.projectApiKey,
-          "X-Firea-Project-Id":extensionConfig.fireaProjectId,
-          "X-Firea-Collection-Id":extensionConfig.collectionPath,
-          "X-Firea-DocPath":docRef,
-        }
-      }
-
-      //payload sent to the firea backend database
-      var data = {}
-      if (isDocDeleted){
-        data = {'__DELETE_DOCUMENT__':change.after.id}
-      } else {
-        data = change.after.data();
-        data['_id'] = change.after.id;
-      }
-      
-      //post to the endpoint of the firea data server for indexing
-      const dataEndpoint = "https://update-a6smmjqo7a-uc.a.run.app/update";
-      
-      axios.post(dataEndpoint, data, requestOptions).then(res => {
-          functions.logger.log('Firea Sync Done',res.status);
-        })
-        .catch(err => {
-          functions.logger.log('Firea Sync Error',err);
-        })
-    });
+    //post to the endpoint of the firea data server for indexing
+    firea.syncDoc(docId,docData,docPath,deleteDoc=isDocDeleted)
+});
 
 
 exports.fireaAggregate = functions.https.onCall((data, context) => {
@@ -63,116 +30,85 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
         );
     }
 
-    // Get user information
-    const uid = context.auth.uid;
-    const userToken = context.auth.token || null;
-    
-    //request data
-    const text = data.text;
+    // Get information to relay to firea backend
+    const userData = context.auth.token || null;
     const collectionId = data.collectionId;
     const aggPipeline = data.aggPipeline;
-    functions.logger.log('collectionId',collectionId);
-    functions.logger.log('aggPipeline',aggPipeline);
 
-    //set header for sending to the firea backend
-    let requestOptions = {
-      headers: {
-        "X-Firea-Api-Key": extensionConfig.projectApiKey,
-        "X-Firea-Project-Id":extensionConfig.fireaProjectId,
-        "X-Firea-Collection-Id":extensionConfig.collectionPath,
-        "X-Firea-User-Uid":uid,
-        "X-Firea-User-Token":userToken,
-      }
-    }
-
-    //execute the aggregation on the fires server
-    const dataEndpoint = "https://aggregation-a6smmjqo7a-uc.a.run.app";
-    return axios.post(dataEndpoint, aggPipeline, requestOptions).then(res => {
-        return res.data;
-      })
-      .catch(err => {
-        functions.logger.log('Firea Sync Error',err);
-        return err;
-      })
+    //execute aggreation
+    return firea.getAggregation(collectionId,aggPipeline,userData);
 });
-
 
 
 exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) => {
 
-  //todo: in any case send an http req to create database records on the backend
-  //create header for sending to the firea backend
-  var requestOptions = {
-    headers: {
-      "X-Firea-Api-Key": extensionConfig.projectApiKey,
-      "X-Firea-Project-Id":extensionConfig.fireaProjectId,
-      "X-Firea-Collection-Id":extensionConfig.collectionPath,
-    }
+  //1 request to create a new collection record
+  try{
+    firea.createCollection();
+  } catch (error) {
+    functions.logger.log('Fatal Error creating new collection',error);
+    getExtensions().runtime().setProcessingState("PROCESSING_FAILED",
+      `Creation failed. ${error}. Try the install again or contact support@firea.io`
+    );
+    return;  
   }
 
-  //Check if Backfill is enabled by the user
+  //2. Check if Backfill is enabled by the user, abort if not
   if (!process.env.DO_BACKFILL) {
-    await runtime.setProcessingState("PROCESSING_COMPLETE", "Existing documents where not backfilled");
+    functions.logger.log('No Backfill selected - return',process.env.DO_BACKFILL);
+    getExtensions().runtime().setProcessingState("PROCESSING_COMPLETE", "no backfill performed");
     return;
   } 
-  
-  // When a lifecycle event triggers this function, it doesn't pass any data - thus zero
-  const offset = data["offset"] ?? null;
-  var docsPerBackfill = 1000;
 
-  //init firebase application
-  if ( !getApps().length ) initializeApp()
+  //3. Start Backfill Process
+  const lastSnapshot = data["lastSnapshot"] ?? null;
+  const docsPerBackfill = 1000;
 
-  //Build query and snapshot
-  var fsQuery = getFirestore()
-    .collection(process.env.COLLECTION_PATH)
-
-  if (offset === null ) {
-    functions.logger.log('Working with offset null',offset);
-    fsQuery = fsQuery.limit(docsPerBackfill);
-  } else {
-    functions.logger.log('Working with offset != null',offset);
-    fsQuery = fsQuery.startAfter(offset).limit(docsPerBackfill);
+  //3.1 init firebase application
+  if (!getApps().length) {
+    await initializeApp();
   }
-  const snapshot = await fsQuery.get();
 
-  // Process each document in the batch.
+  //3.2 build a query and snapshot / startAfter lastDoc if n+1th loop
+  var fsQuery = getFirestore().collection(extensionConfig.default.collectionPath);
+  if (lastSnapshot != null ) { fsQuery = fsQuery.startAfter(lastSnapshot);}
+  fsQuery = fsQuery.limit(docsPerBackfill);
+
+  //3.3 execute query, loop over all docs and send them to the backend
+  const snapshot = await fsQuery.get();
+  functions.logger.log('snapshot docs',snapshot.docs);
   const processed = await Promise.allSettled(
     snapshot.docs.map(async (documentSnapshot) => {
-      //payload sent to the firea backend database
-      var data = documentSnapshot.data();
-      data['_id'] = documentSnapshot.id;
-      offset = documentSnapshot.id;
-      requestOptions["X-Firea-DocPath"] = documentSnapshot.ref.path;
-
-      //post to the endpoint of the firea server for indexing
-      const dataEndpoint = "https://update-a6smmjqo7a-uc.a.run.app/update";
-      axios.post(dataEndpoint, data, requestOptions).then(res => {
-          functions.logger.log('Firea Doc Sync Done',res.status);
-        })
-        .catch(err => {
-          functions.logger.log('Firea Sync Error',err);
-        })
+      try{
+        await firea.syncDoc(documentSnapshot.id,documentSnapshot.data(),documentSnapshot.ref.path);
+      }catch (error) {
+        functions.logger.log('error doc could not be backfilled',error);
+      }
     })
   );
 
+  //DEBUG ONLY - print each sync result
+  processed.forEach((result) => {
+    functions.logger.log('Status',result.status);
+    if (result.status == 'rejected'){
+      functions.logger.log('Result Rejected ',result.reason);
+    }
+  });
+
+  //3.4 check progress of the sending process
   if (processed.length == docsPerBackfill) {
-      // If we processed a full batch, there are probably more documents to sync
-      functions.logger.log('Queing another function',processed.length);
-      functions.logger.log('offset is',offset);
-      const queue = getFunctions().taskQueue(
-      "backfilldata",
-      process.env.EXT_INSTANCE_ID
-    );
-    await queue.enqueue({
-      offset: offset,
-    });
+    //it will proboably need another batch
+    functions.logger.log('enqueue another backfill task',processed.length);
+    const queue = getFunctions().taskQueue("backfilldata",process.env.EXT_INSTANCE_ID);
+    await queue.enqueue({lastSnapshot: lastSnapshot});
   } else {
-    functions.logger.log('Processing complete',processed.length);
-      // Processing is complete. Report status to the user (see below).
-      getExtensions().runtime().setProcessingState(
-        "PROCESSING_COMPLETE",
-        "Backfill complete. Successfully processed documents."
-      );
+    //batch is done - set extension to complete state
+    functions.logger.log('backfill finished',processed.length);
+    getExtensions().runtime().setProcessingState(
+      "PROCESSING_COMPLETE",
+      "Backfill complete. Successfully processed documents."
+    );
   }
 });
+
+
