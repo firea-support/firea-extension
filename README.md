@@ -6,7 +6,7 @@
 ---
 
 ## 🧩 Install this extension
-https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.2.0
+https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.2.1
 
 
 ---

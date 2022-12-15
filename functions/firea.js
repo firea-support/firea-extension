@@ -18,12 +18,13 @@ function _getBaseHeader(docPath=null,userData=null,deleteDoc=null,collectionId=n
         "X-Firea-Collection-Id":extensionConfig.default.collectionPath,
     }
     //add optional header parameters for different enpoints
-    if (docPath != null) {baseHeader['X-Firea-DocPath']=docPath}
-    if (userData != null) {baseHeader['X-Firea-User-Map']=userData}
-    if (deleteDoc != null) {baseHeader['X-Firea-Delete-Doc']='true'}
-    if (collectionId != null) {baseHeader['X-Firea-Collection-Id']=collectionId}
+    if (docPath != null) {baseHeader['X-Firea-DocPath']=docPath;}
+    if (userData != null) {baseHeader['X-Firea-User-Map']=userData;}
+    if (deleteDoc != null) {baseHeader['X-Firea-Delete-Doc']='true';}
+    if (collectionId != null) {baseHeader['X-Firea-Collection-Id']=collectionId;}
     return baseHeader;
 }
+
 
 //Route to the nearest firea.io endpoint
 function _getNarrowRegion(){
