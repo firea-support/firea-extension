@@ -18,4 +18,7 @@ Initial release of the Firea.io Stream extension.
 - View aggregation logs in your Firea.io console
 
 ## Version 0.2.1
-- fixed rebasing when updating the extensin
+- fixed rebasing when updating the extension
+
+## Version 0.2.2
+- Added Backfilling for nested data (collectiongroup)

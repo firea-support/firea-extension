@@ -76,12 +76,16 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
   }
 
   //3.2 build a query and snapshot / startAfter lastDoc if n+1th loop
+  const collectionPath = extensionConfig.default.collectionPath; //companies/{}
   var fsQuery = getFirestore()
+
   //decide whether to use a collection group query
-  if (str.includes("{")){
-    fsQuery = fsQuery.collectionGroup(extensionConfig.default.collectionPath);
+  if (collectionPath.includes("/")){
+    const lastConnection = collectionPath.split('/').pop();
+    functions.logger.log('last collection',lastConnection);
+    fsQuery = fsQuery.collectionGroup(lastConnection);
   } else {
-    fsQuery = fsQuery.collection(extensionConfig.default.collectionPath);
+    fsQuery = fsQuery.collection(collectionPath);
   }
   //in case its not the first invocation add pagination
   if (lastSnapshot != null ) { fsQuery = fsQuery.startAfter(lastSnapshot);}
