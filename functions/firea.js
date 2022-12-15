@@ -28,7 +28,7 @@ function _getBaseHeader(docPath=null,userData=null,deleteDoc=null,collectionId=n
 //Route to the nearest firea.io endpoint
 function _getNarrowRegion(){
     const euRegions = ['europe-central2','europe-west1','europe-west2','europe-west3','europe-west6'];
-    if (extensionConfig.default.location in euRegions){
+    if (euRegions.includes(extensionConfig.default.location)){
         return 'eu1';
     } else {
         return 'us1';
@@ -37,7 +37,7 @@ function _getNarrowRegion(){
 
 function _getAggEndpoint(){
     //DEBUG ONLY - QA Endpoint!
-    return 'https://aggregation-qa-a6smmjqo7a-ey.a.run.app/aggregate';
+    //return 'https://aggregation-qa-a6smmjqo7a-ey.a.run.app/aggregate';
 
     if (_getNarrowRegion() == 'eu1'){
         return 'https://aggregation-eu-a6smmjqo7a-ey.a.run.app/aggregate';
@@ -48,7 +48,7 @@ function _getAggEndpoint(){
 
 function _getUpdateEndpoint(){
     //DEBUG ONLY - QA Endpoint!
-    return 'https://update-qa-a6smmjqo7a-ey.a.run.app/update';
+    //return 'https://update-qa-a6smmjqo7a-ey.a.run.app/update';
 
     if (_getNarrowRegion() == 'eu1'){
         return 'https://update-eu-a6smmjqo7a-ey.a.run.app/update';
@@ -60,7 +60,7 @@ function _getUpdateEndpoint(){
 
 function _getCollectionEndpoint(){
     //DEBUG ONLY - QA Endpoint
-    return 'https://add-collection-qa-a6smmjqo7a-ey.a.run.app/collection';
+    //return 'https://add-collection-qa-a6smmjqo7a-ey.a.run.app/collection';
 
     if (_getNarrowRegion()== 'eu1') {
         return 'https://add-collection-eu-a6smmjqo7a-ey.a.run.app/collection';

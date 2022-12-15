@@ -47,9 +47,8 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
 
 
 exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) => {
-
   //1 request to create a new collection record
-  try{
+  try {
     firea.createCollection();
   } catch (error) {
     functions.logger.log('Fatal Error creating new collection',error);
@@ -85,7 +84,7 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
   functions.logger.log('snapshot docs',snapshot.docs);
   const processed = await Promise.allSettled(
     snapshot.docs.map(async (documentSnapshot) => {
-      try{
+      try {
         await firea.syncDoc(documentSnapshot.id,documentSnapshot.data(),documentSnapshot.ref.path);
       }catch (error) {
         functions.logger.log('error doc could not be backfilled',error);
