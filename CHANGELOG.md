@@ -4,8 +4,16 @@
 Initial release of the Firea.io Stream extension.
 ## Version 0.1.0
 
-Beta Release:
 - Faster Aggregations and Sync Endpoints
 - Support for Collection Group Queries
 - Better Hanlding for Document Deletions
 - Datetime Bugfixes
+
+## Version 0.2.0
+
+- Secure aggregations from your firebase SDK
+- Auto backfilling of your data
+- Performance improvements & bugfixes
+- Custom indexing
+- View aggregation logs in your Firea.io console
+
