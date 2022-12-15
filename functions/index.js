@@ -47,9 +47,13 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
 
 
 exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) => {
-  //1 request to create a new collection record
+  //Parameters from previous runs
+  const lastSnapshot = data["lastSnapshot"] ?? null;
+  const docsPerBackfill = 1000;
+  
+  //1. request to create a new collection record if function is called the first time
   try {
-    firea.createCollection();
+    if (lastSnapshot == null) {firea.createCollection()};
   } catch (error) {
     functions.logger.log('Fatal Error creating new collection',error);
     getExtensions().runtime().setProcessingState("PROCESSING_FAILED",
@@ -65,18 +69,23 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
     return;
   } 
 
-  //3. Start Backfill Process
-  const lastSnapshot = data["lastSnapshot"] ?? null;
-  const docsPerBackfill = 1000;
+  //3. Start Backfilling Process
 
-  //3.1 init firebase application
   if (!getApps().length) {
     await initializeApp();
   }
 
   //3.2 build a query and snapshot / startAfter lastDoc if n+1th loop
-  var fsQuery = getFirestore().collection(extensionConfig.default.collectionPath);
+  var fsQuery = getFirestore()
+  //decide whether to use a collection group query
+  if (str.includes("{")){
+    fsQuery = fsQuery.collectionGroup(extensionConfig.default.collectionPath);
+  } else {
+    fsQuery = fsQuery.collection(extensionConfig.default.collectionPath);
+  }
+  //in case its not the first invocation add pagination
   if (lastSnapshot != null ) { fsQuery = fsQuery.startAfter(lastSnapshot);}
+  //limit to batch size
   fsQuery = fsQuery.limit(docsPerBackfill);
 
   //3.3 execute query, loop over all docs and send them to the backend
@@ -92,7 +101,8 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
     })
   );
   
-  //DEBUG ONLY - print each sync result
+  //print each sync result
+  //todo remove when moving out of beta
   processed.forEach((result) => {
     functions.logger.log('Status',result.status);
     if (result.status == 'rejected'){
