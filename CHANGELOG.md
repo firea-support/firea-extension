@@ -17,3 +17,5 @@ Initial release of the Firea.io Stream extension.
 - Custom indexing
 - View aggregation logs in your Firea.io console
 
+## Version 0.2.1
+- fixed rebasing when updating the extensin
