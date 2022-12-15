@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firea-sync
-version: 0.2.1 
+version: 0.2.2 
 specVersion: v1beta
 
 displayName: Firea.io
@@ -78,7 +78,6 @@ lifecycleEvents:
     function: fireaBackfillData
     processingMessage: Check if existing documents must be backfilled
 
-
 params:
   - param: LOCATION
     label: Cloud Functions location
@@ -141,6 +140,7 @@ params:
     label: Collection path
     description: >
       What is the path to the collection? Use Wildcards for nested collections e.g. companies/{companyId}/transactions
+      If you want to backfill nested data you will require a collectiongroup index before installing the extension!
     example: transactions
     validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
     validationErrorMessage: Must be a valid Cloud Firestore Collection
