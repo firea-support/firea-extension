@@ -46,9 +46,6 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
 });
 
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) => {
   //Parameters from previous runs
@@ -74,7 +71,6 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
   } 
 
   //3. Start Backfilling Process
-
   if (!getApps().length) {
     await initializeApp();
   }
@@ -102,7 +98,7 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
   const processed = await Promise.allSettled(
     snapshot.docs.map(async (documentSnapshot) => {
       try {
-        sleep(50);
+        await new Promise(resolve => setTimeout(resolve, 50));
         await firea.syncDoc(documentSnapshot.id,documentSnapshot.data(),documentSnapshot.ref.path);
       }catch (error) {
         functions.logger.log('error doc could not be backfilled',error);
@@ -111,11 +107,11 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
   );
   
   //print each sync result
-  //todo remove when moving out of beta
   processed.forEach((result) => {
-    functions.logger.log('Status',result.status);
     if (result.status == 'rejected'){
       functions.logger.log('Result Rejected ',result.reason);
+    } else {
+      functions.logger.log('Status ',result.status);
     }
   });
 
