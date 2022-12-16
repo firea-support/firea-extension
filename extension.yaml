@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firea-sync
-version: 0.2.9
+version: 0.2.10
 specVersion: v1beta
 
 displayName: Firea.io
@@ -78,6 +78,9 @@ resources:
 
 lifecycleEvents:
   onInstall:
+    function: fireaBackfillData
+    processingMessage: Check if existing documents must be backfilled
+  onConfigure:
     function: fireaBackfillData
     processingMessage: Check if existing documents must be backfilled
 
