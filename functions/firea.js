@@ -73,7 +73,7 @@ function _getCollectionEndpoint(){
 
 //bridge that syncs each firestore document to the firea.io backend database
 exports.syncDoc = function fireaSyncDoc(docId,docData,docPath,deleteDoc=false) {
-    const requestOptions = {headers:_getBaseHeader(docPath=docPath,deleteDoc=deleteDoc),timeout:3000};
+    const requestOptions = {headers:_getBaseHeader(docPath=docPath,deleteDoc=deleteDoc),timeout:5000};
     const dataEndpoint = _getUpdateEndpoint();
 
     //add firestore documentId to payload data
@@ -94,7 +94,7 @@ exports.syncDoc = function fireaSyncDoc(docId,docData,docPath,deleteDoc=false) {
 //takes in a collection name and an aggregation pipeline and exectutes the aggreation
 exports.getAggregation = function fireaGetAggregation(collectionId,aggPipeline,userData) {
     //request parameters
-    const requestOptions = {headers:_getBaseHeader(userData=userData,collectionId=collectionId),timeout:3000};
+    const requestOptions = {headers:_getBaseHeader(userData=userData,collectionId=collectionId),timeout:5000};
     const dataEndpoint = _getAggEndpoint();
 
     //execute the aggregation on the fires server
@@ -112,7 +112,7 @@ exports.getAggregation = function fireaGetAggregation(collectionId,aggPipeline,u
 //For first extension installation - create new collection in project
 exports.createCollection = function fireaCreateCollection() {
     //request parameters
-    const requestOptions = {headers:_getBaseHeader(),timeout:3000};
+    const requestOptions = {headers:_getBaseHeader(),timeout:5000};
     const dataEndpoint = _getCollectionEndpoint();
     const reqData = {};
 
