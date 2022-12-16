@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firea-sync
-version: 0.2.6
+version: 0.2.7
 specVersion: v1beta
 
 displayName: Firea.io
@@ -72,7 +72,7 @@ resources:
     properties:
       sourceDirectory: functions
       runtime: nodejs14
-      timeout: 600s
+      timeout: 500s
       location: ${param:LOCATION}
       taskQueueTrigger: {}
 

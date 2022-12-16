@@ -31,3 +31,6 @@ Initial release of the Firea.io Stream extension.
 
 ## Version 0.2.6
 - fixed backfill issue for large collections
+
+## Version 0.2.7
+- backsync timout increased to 500s per batch
