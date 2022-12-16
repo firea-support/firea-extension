@@ -34,3 +34,9 @@ Initial release of the Firea.io Stream extension.
 
 ## Version 0.2.7
 - backsync timout increased to 500s per batch
+
+## Version 0.2.8
+- fixed multi batch backfill issue
+
+## Version 0.2.9
+- added location to function path

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firea-sync
-version: 0.2.7
+version: 0.2.9
 specVersion: v1beta
 
 displayName: Firea.io
@@ -74,7 +74,7 @@ resources:
       runtime: nodejs14
       timeout: 500s
       location: ${param:LOCATION}
-      taskQueueTrigger: {}
+      taskQueueTrigger: {}   
 
 lifecycleEvents:
   onInstall:
@@ -168,7 +168,7 @@ params:
     required: true
 
   - param: DO_BACKFILL
-    label: Do you want to backfill all your existing data?
+    label: Do you want to backfill all your existing data? (BETA)
     description: >-
       This requires you to have Blaze plan enabled on your Firea.io Account
       You can always manually trigger a backfill later from your Firea.io console

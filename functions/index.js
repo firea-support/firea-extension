@@ -46,7 +46,6 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
 });
 
 
-
 exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) => {
   functions.logger.log('start backfill round',data);
   //Parameters from previous runs
@@ -78,7 +77,7 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
 
   //3.2 build a query and snapshot / startAfter lastDoc if n+1th loop
   const collectionPath = extensionConfig.default.collectionPath; //companies/{}
-  var fsQuery = getFirestore()
+  var fsQuery = getFirestore();
 
   //decide whether to use a collection group query
   if (collectionPath.includes("/")){
@@ -119,8 +118,9 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
   //3.4 check progress of the sending process
   if (processed.length == docsPerBackfill) {
     //it will proboably need another batch
-    functions.logger.log('enqueue another backfill task',processed.length);
-    const queue = getFunctions().taskQueue("backfilldata",process.env.EXT_INSTANCE_ID);
+    var func_path = `locations/${extensionConfig.default.location}/functions/fireaBackfillData`;
+    functions.logger.log('enqueue another backfill task',func_path);
+    const queue = getFunctions().taskQueue(func_path,process.env.EXT_INSTANCE_ID);
     await queue.enqueue({lastSnapshot: lastSnapshot});
   } else {
     //batch is done - set extension to complete state
