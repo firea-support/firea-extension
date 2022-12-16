@@ -29,5 +29,5 @@ Initial release of the Firea.io Stream extension.
 ## Version 0.2.4
 - Added backsync throttling
 
-## Version 0.2.5
+## Version 0.2.6
 - fixed backfill issue for large collections

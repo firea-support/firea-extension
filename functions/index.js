@@ -48,6 +48,7 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
 
 
 exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) => {
+  functions.logger.log('start backfill round',data);
   //Parameters from previous runs
   const lastSnapshot = data["lastSnapshot"] ?? null;
   const docsPerBackfill = 1000;

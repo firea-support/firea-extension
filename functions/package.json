@@ -1,6 +1,6 @@
 {
     "name": "firea-io",
-    "version": "0.2.5",
+    "version": "0.2.6",
     "description": "Supercharge your Firestore database",
     "main": "index.js",
     "scripts": {
