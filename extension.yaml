@@ -84,10 +84,7 @@ lifecycleEvents:
   onConfigure:
     function: fireaBackfillData
     processingMessage: Check if existing documents must be backfilled
-  onUpdate:
-    function: fireaBackfillData
-    processingMessage: Check if existing documents must be backfilled
-
+  
 params:
   - param: LOCATION
     label: Cloud Functions location

@@ -53,7 +53,6 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
   var offset = data["offset"] ?? 0;
   var totalSynced = data["totalSynced"] ?? 0;
   var backfillRound = data["backfillRound"] ?? 0;
-
   functions.logger.log('start backfill round no',backfillRound);
 
   
