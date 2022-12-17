@@ -43,3 +43,6 @@ Initial release of the Firea.io Stream extension.
 
 ## Version 0.2.10
 - added backfill on configuration change
+
+## Version 0.2.11
+- tuned rate limit on backfill task

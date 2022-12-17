@@ -1,12 +1,12 @@
 # Firea.io - Supercharge your Firestore Database
 **Author**: Firea.io (https://www.firea.io/)
 
-**Description**: Use powerful MQL Queries to use allow for aggregation, groupby and complex querys to your database
+**Description**: Use powerful MQL Queries to use allow for aggregation, groupby and complex querys on your firestore database
 
 ---
 
 ## 🧩 Install this extension
-https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.2.1
+https://console.firebase.google.com/project/_/extensions/install?ref=firea/firea-sync@0.2.11
 
 
 ---
@@ -38,9 +38,16 @@ MQL Aggregations will not count as writes as they are not performed on the fires
 
 - Collection path: What is the path to the collection that contains the comments you want to analyze?
 
+- Backfill Data: Do you want to backfill all your existing data on installation?
+
 **Cloud Functions:**
 
 - **fireaSyncDocument:** Listens for updates to your specified Cloud Firestore collection, and updates the firea.io backend index.
+
+- **fireaAggregate:** Authenticated cloudfunction to run an aggregation query right from your app
+
+- **fireaBackfillData:** Optionally backfills your data after isntalling or changing the configuration
+
 
 **Access Required**:
 

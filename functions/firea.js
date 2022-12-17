@@ -82,10 +82,11 @@ exports.syncDoc = function fireaSyncDoc(docId,docData,docPath,deleteDoc=false) {
     //execute post request
     return axios.post(dataEndpoint, docData, requestOptions).
     then(res => {
-        functions.logger.log('FireaDocSync Successful',res.status);
+        return true;
     })
     .catch(function (error) {
         functions.logger.log('FireaDocSync Failed',error);
+        throw `doc sync failed ${error}`;
     });
     
 };

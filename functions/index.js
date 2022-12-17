@@ -47,14 +47,21 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
 
 
 exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) => {
-  functions.logger.log('start backfill round',data);
-  //Parameters from previous runs
-  const lastSnapshot = data["lastSnapshot"] ?? null;
-  const docsPerBackfill = 1000;
+
+  //get parameters from previous runs
+  const docsPerBackfill = 500;
+  var offset = data["offset"] ?? 0;
+  var totalSynced = data["totalSynced"] ?? 0;
+  var backfillRound = data["backfillRound"] ?? 0;
+
+  functions.logger.log('start backfill round no',backfillRound);
+
   
   //1. request to create a new collection record if function is called the first time
   try {
-    if (lastSnapshot == null) {firea.createCollection()};
+    if (backfillRound == 0) {
+      firea.createCollection()
+    };
   } catch (error) {
     functions.logger.log('Fatal Error creating new collection',error);
     getExtensions().runtime().setProcessingState("PROCESSING_FAILED",
@@ -65,7 +72,7 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
 
   //2. Check if Backfill is enabled by the user, abort if not
   if (!process.env.DO_BACKFILL) {
-    functions.logger.log('No Backfill selected - return',process.env.DO_BACKFILL);
+    functions.logger.log('no backfilling selected - return',process.env.DO_BACKFILL);
     getExtensions().runtime().setProcessingState("PROCESSING_COMPLETE", "no backfill performed");
     return;
   } 
@@ -82,27 +89,19 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
   //decide whether to use a collection group query
   if (collectionPath.includes("/")){
     const lastConnection = collectionPath.split('/').pop();
-    functions.logger.log('last collection',lastConnection);
     fsQuery = fsQuery.collectionGroup(lastConnection);
   } else {
     fsQuery = fsQuery.collection(collectionPath);
   }
-  //in case its not the first invocation add pagination
-  if (lastSnapshot != null ) { fsQuery = fsQuery.startAfter(lastSnapshot);}
+
   //limit to batch size
-  fsQuery = fsQuery.limit(docsPerBackfill);
+  fsQuery = fsQuery.offset(offset).limit(docsPerBackfill);
 
   //3.3 execute query, loop over all docs and send them to the backend
   const snapshot = await fsQuery.get();
-  functions.logger.log('snapshot docs',snapshot.docs);
   const processed = await Promise.allSettled(
     snapshot.docs.map(async (documentSnapshot) => {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        await firea.syncDoc(documentSnapshot.id,documentSnapshot.data(),documentSnapshot.ref.path);
-      }catch (error) {
-        functions.logger.log('error doc could not be backfilled',error);
-      }
+      await firea.syncDoc(documentSnapshot.id,documentSnapshot.data(),documentSnapshot.ref.path);
     })
   );
   
@@ -111,23 +110,28 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
     if (result.status == 'rejected'){
       functions.logger.log('Result Rejected ',result.reason);
     } else {
-      functions.logger.log('Status ',result.status);
+      totalSynced = totalSynced+1;
     }
   });
 
   //3.4 check progress of the sending process
   if (processed.length == docsPerBackfill) {
     //it will proboably need another batch
+    functions.logger.log('enqueue another backfill task. total synced: ',totalSynced);
+    
     var func_path = `locations/${extensionConfig.default.location}/functions/fireaBackfillData`;
-    functions.logger.log('enqueue another backfill task',func_path);
     const queue = getFunctions().taskQueue(func_path,process.env.EXT_INSTANCE_ID);
-    await queue.enqueue({lastSnapshot: lastSnapshot});
+    await queue.enqueue({
+      offset: offset+docsPerBackfill,
+      totalSynced:totalSynced,
+      backfillRound:backfillRound+1,
+    });
   } else {
     //batch is done - set extension to complete state
-    functions.logger.log('backfill finished',processed.length);
+    functions.logger.log('backfill finished',totalSynced);
     getExtensions().runtime().setProcessingState(
       "PROCESSING_COMPLETE",
-      "Backfill complete. Successfully processed documents."
+      `Backfill complete. Successfully synced ${totalSynced} of ${processed.length + backfillRound*docsPerBackfill} documents.`
     );
   }
 });
