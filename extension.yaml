@@ -13,7 +13,7 @@
 # limitations under the License.
 
 name: firea-sync
-version: 0.2.11
+version: 0.2.12
 specVersion: v1beta
 
 displayName: Firea.io
@@ -76,7 +76,6 @@ resources:
       location: ${param:LOCATION}
       taskQueueTrigger: {}
 
-
 lifecycleEvents:
   onInstall:
     function: fireaBackfillData
@@ -84,7 +83,8 @@ lifecycleEvents:
   onConfigure:
     function: fireaBackfillData
     processingMessage: Check if existing documents must be backfilled
-  
+
+
 params:
   - param: LOCATION
     label: Cloud Functions location

@@ -9,7 +9,7 @@ const axios = require('axios');
 const functions = require('firebase-functions');
 
 //Helper to create authentication header for the firea backend
-function _getBaseHeader(docPath=null,userData=null,deleteDoc=null,collectionId=null){
+function _getBaseHeader(docPath=null,userData=null,deleteDoc=null,collectionId=null,isBulkSync=null){
     //construct base header 
     var baseHeader = {
         "Content-Type":"application/json",
@@ -22,6 +22,7 @@ function _getBaseHeader(docPath=null,userData=null,deleteDoc=null,collectionId=n
     if (userData != null) {baseHeader['X-Firea-User-Map']=userData;}
     if (deleteDoc != null) {baseHeader['X-Firea-Delete-Doc']='true';}
     if (collectionId != null) {baseHeader['X-Firea-Collection-Id']=collectionId;}
+    if (isBulkSync != null) {baseHeader['X-Firea-Bulk-Sync']='true';}
     return baseHeader;
 }
 
@@ -87,6 +88,22 @@ exports.syncDoc = function fireaSyncDoc(docId,docData,docPath,deleteDoc=false) {
     .catch(function (error) {
         functions.logger.log('FireaDocSync Failed',error);
         throw `doc sync failed ${error}`;
+    });
+    
+};
+
+exports.bulkSync = function fireaBulkSync(docs) {
+    const requestOptions = {headers:_getBaseHeader(null,null,null,null,true),timeout:5000};
+    const dataEndpoint = _getUpdateEndpoint();
+    
+    //execute post request
+    return axios.post(dataEndpoint, docs, requestOptions).
+    then(res => {
+        return true;
+    })
+    .catch(function (error) {
+        functions.logger.log('firea bulk sync failed',error);
+        throw `bulk sync failed ${error}`;
     });
     
 };

@@ -49,7 +49,7 @@ exports.fireaAggregate = functions.https.onCall((data, context) => {
 exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) => {
 
   //get parameters from previous runs
-  const docsPerBackfill = 500;
+  const docsPerBackfill = 250;
   var offset = data["offset"] ?? 0;
   var totalSynced = data["totalSynced"] ?? 0;
   var backfillRound = data["backfillRound"] ?? 0;
@@ -98,26 +98,25 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
 
   //3.3 execute query, loop over all docs and send them to the backend
   const snapshot = await fsQuery.get();
-  const processed = await Promise.allSettled(
-    snapshot.docs.map(async (documentSnapshot) => {
-      await firea.syncDoc(documentSnapshot.id,documentSnapshot.data(),documentSnapshot.ref.path);
-    })
-  );
+  const docs = snapshot.docs.map((documentSnapshot) => {
+    return {
+        docId:documentSnapshot.id,
+        docData:documentSnapshot.data(),
+        docPath:documentSnapshot.ref.path,
+      }
+    });  
   
-  //print each sync result
-  processed.forEach((result) => {
-    if (result.status == 'rejected'){
-      functions.logger.log('Result Rejected ',result.reason);
-    } else {
-      totalSynced = totalSynced+1;
-    }
-  });
+  try {
+    await firea.bulkSync(docs);
+    totalSynced += docs.length;
+  }catch (error) {
+    functions.logger.log('Bulk sync failed',error);
+  }
 
   //3.4 check progress of the sending process
-  if (processed.length == docsPerBackfill) {
+  if (docs.length == docsPerBackfill) {
     //it will proboably need another batch
     functions.logger.log('enqueue another backfill task. total synced: ',totalSynced);
-    
     var func_path = `locations/${extensionConfig.default.location}/functions/fireaBackfillData`;
     const queue = getFunctions().taskQueue(func_path,process.env.EXT_INSTANCE_ID);
     await queue.enqueue({
@@ -127,10 +126,10 @@ exports.fireaBackfillData = functions.tasks.taskQueue().onDispatch(async (data) 
     });
   } else {
     //batch is done - set extension to complete state
-    functions.logger.log('backfill finished',totalSynced);
+    functions.logger.log('backfill finished, total synced:',totalSynced);
     getExtensions().runtime().setProcessingState(
       "PROCESSING_COMPLETE",
-      `Backfill complete. Successfully synced ${totalSynced} of ${processed.length + backfillRound*docsPerBackfill} documents.`
+      `Backfill complete. Successfully synced ${totalSynced} of ${offset + docs.length} documents.`
     );
   }
 });

@@ -46,3 +46,6 @@ Initial release of the Firea.io Stream extension.
 
 ## Version 0.2.11
 - tuned rate limit on backfill task
+
+## Version 0.2.12
+- added batchsync endpoint for more performant backfilling
